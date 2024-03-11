@@ -1,17 +1,19 @@
 import sys
 import os
+import time
 
 from PIL import Image
 import numpy as np
 from numpy import ndarray
 import argparse
 
-
-END_OF_MSG = ""
+# END_OF_MSG should be unprintable
+END_OF_MSG = ''
 MASK_HIGH_BITS = 0b11111100
 MASK_LOW_BITS = 0b00000011
 COLORS_PER_BYTE = 4
 BITS_PER_COLOR = 2
+
 
 def convert_to_array(image: str) -> ndarray:
     # Open our image as array
@@ -41,7 +43,7 @@ def encode(image: ndarray, char: str, start: int, end: int) -> None:
 
 
 def add_to_array(image: ndarray, msg: str) -> ndarray:
-    msg = f"{msg}{END_OF_MSG}"
+    msg = f"{msg}{END_OF_MSG}{END_OF_MSG}"
     # save our original shape
     arr_shape = np.shape(image)
 
@@ -70,17 +72,18 @@ def decode(chunk, start, end) -> str:
     return chr(int(f"{symbol}", 2))
 
 
-def read_from_array(image: ndarray) -> ndarray:
+def read_from_array(image: ndarray) -> str:
     image = np.reshape(image, -1)
-    msg = ""
+    msg = ''
     for index in range(len(image)):
         start = index * COLORS_PER_BYTE
         end = COLORS_PER_BYTE * (index + 1)
         symbol = decode(image, start, end)
-        if symbol == END_OF_MSG:
+        # we're deliberately using an unprintable character at the end of the message
+        if not symbol.isprintable():
             return msg
         else:
-            msg += symbol
+            msg = msg + symbol
 
 
 def main():
@@ -112,8 +115,7 @@ def main():
         print(f'Your message was successfully put into {new_name}. Congratulations!!!')
     elif all((image_path, not message, extract_true)):
         image = convert_to_array(image_path)
-        message = read_from_array(image)
-        print("Your encoded message is: ", message)
+        print("Your encoded message is: ", read_from_array(image))
     else:
         parser.print_usage()
 
