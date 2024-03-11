@@ -6,6 +6,8 @@ from project import (
     add_to_array,
     read_from_array,
     file_extension,
+    decode,
+    encode,
 
 )
 
