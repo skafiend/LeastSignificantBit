@@ -1,0 +1,2 @@
+project.py: numpy, PIL
+test_project.py:  numpy, PIL, wget
