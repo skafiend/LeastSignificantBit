@@ -6,10 +6,11 @@ import numpy as np
 from numpy import ndarray
 import argparse
 
-# END_OF_MSG MUST be unprintable
-END_OF_MSG = ''
+# DON'T CHANGE THESE LINES UNLESS YOU KNOW WHAT YOU'RE DOING!!!!!!!
+# END_OF_MSG MUST BE UNPRINTABLE
+END_OF_MSG = ""
 # saving files in 'jpg.' causes trouble reading the encoded data
-EXPORT_EXT = '.png'
+EXPORT_EXT = ".png"
 # we use this mark to clear our LSB bits
 MASK_HIGH_BITS = 0b11111100
 # we use this mask to extract bits from our character in right to left order
@@ -18,7 +19,7 @@ MASK_LOW_BITS = 0b00000011
 COLORS_PER_BYTE = 4
 # every color (r, g, b) contains this amount of data:
 BITS_PER_COLOR = 2
-EXTENSIONS = ('.png', '.jpeg', '.jpg')
+EXTENSIONS = (".png", ".jpeg", ".jpg")
 
 
 def file_extension(path: str, extensions):
@@ -89,7 +90,7 @@ def decode(chunk, start, end) -> str:
 
 def read_from_array(image: ndarray) -> str:
     image = np.reshape(image, -1)
-    msg = ''
+    msg = ""
     for index in range(len(image)):
         start = index * COLORS_PER_BYTE
         end = COLORS_PER_BYTE * (index + 1)
@@ -102,25 +103,30 @@ def read_from_array(image: ndarray) -> str:
 
 
 def main():
-    example_text = ('text into an image: test_image.ext --message="Test text"'
-                    '\ntext from an image: test_ENCODED.png --extract')
+    example_text = (
+        'text into an image: test_image.ext --message="Test text"'
+        "\ntext from an image: test_ENCODED.png --extract"
+    )
 
     parser = argparse.ArgumentParser(
-        prog='Least Significant Bit Image',
-        description='The program encodes/decodes a message into/from an image',
+        prog="Least Significant Bit Image",
+        description="The program encodes/decodes a message into/from an image",
         epilog=example_text,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
-    parser.add_argument('image', type=str, help='path to an image')
-    parser.add_argument('--message', '-m', type=str, help='a message to encode')
-    parser.add_argument('--extract', '-e', action='store_true', help='extract a message from an image')
+    parser.add_argument("image", type=str, help="path to an image")
+    parser.add_argument("--message", "-m", type=str, help="a message to encode")
+    parser.add_argument(
+        "--extract", "-e", action="store_true", help="extract a message from an image"
+    )
 
     args = parser.parse_args()
     image_path = args.image
     file_extension(image_path, EXTENSIONS)
     message = args.message
-    if message is None: message = ''
+    if message is None:
+        message = ""
     extract_true = args.extract
 
     if all((image_path, message.isprintable(), not extract_true)):
@@ -129,7 +135,7 @@ def main():
         name = os.path.splitext(image_path)
         new_name = name[0] + "_ENCODED" + EXPORT_EXT
         image.save(new_name)
-        print(f'Your message was successfully put into {new_name}. Congratulations!!!')
+        print(f"Your message was successfully put into {new_name}. Congratulations!!!")
     elif all((image_path, not message, extract_true)):
         image = convert_to_array(image_path)
         print("Your encoded message is: ", read_from_array(image))

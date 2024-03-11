@@ -8,16 +8,19 @@ from project import (
     file_extension,
     decode,
     encode,
-
 )
 
 # before the test start, create two files test.png and test.jpg
 cwd = os.getcwd()
-wget.download('https://file-examples.com/storage/fe0275ec7165ef4cb9b4af6/2017/10/file_example_JPG_1MB.jpg',
-              out=f'{cwd}\\test.jpg')
-wget.download('https://file-examples.com/storage/fe0275ec7165ef4cb9b4af6/2017/10/file_example_PNG_1MB.png',
-              out=f'{cwd}\\test.png')
-PATH = f'{cwd}\\test'
+wget.download(
+    "https://file-examples.com/storage/fe0275ec7165ef4cb9b4af6/2017/10/file_example_JPG_1MB.jpg",
+    out=f"{cwd}\\test.jpg",
+)
+wget.download(
+    "https://file-examples.com/storage/fe0275ec7165ef4cb9b4af6/2017/10/file_example_PNG_1MB.png",
+    out=f"{cwd}\\test.png",
+)
+PATH = f"{cwd}\\test"
 
 
 # file doesn't exists
@@ -33,22 +36,22 @@ def extensions():
 
 @pytest.fixture
 def jpg_image():
-    return f'{PATH}' + '.jpg'
+    return f"{PATH}" + ".jpg"
 
 
 @pytest.fixture
 def png_image():
-    return f'{PATH}' + '.png'
+    return f"{PATH}" + ".png"
 
 
 @pytest.fixture
 def enc_png_image():
-    return f'{PATH}' + '_encoded' + '.png'
+    return f"{PATH}" + "_encoded" + ".png"
 
 
 @pytest.fixture
 def enc_jpg_image():
-    return f'{PATH}' + '_encoded' + '.jpg'
+    return f"{PATH}" + "_encoded" + ".jpg"
 
 
 @pytest.mark.parametrize("path", ["C:\\test.txt", "C:\\test", "C:\\"])
@@ -63,8 +66,8 @@ def test_file_extension(path, extensions):
     ("original_image", "encoded_image"),
     [
         (
-                'jpg_image',
-                'enc_png_image',
+            "jpg_image",
+            "enc_png_image",
         )
     ],
 )
@@ -82,8 +85,8 @@ def test_arrays_equal(original_image, encoded_image, request):
     ("original_image", "encoded_image"),
     [
         (
-                'jpg_image',
-                'enc_jpg_image',
+            "jpg_image",
+            "enc_jpg_image",
         )
     ],
 )
@@ -107,7 +110,7 @@ def small_container():
 # test a small container (image)
 def test_small_container(small_container):
     with pytest.raises(SystemExit):
-        add_to_array(small_container, 'Very very very very long message')
+        add_to_array(small_container, "Very very very very long message")
 
 
 # test if we can encode and extract our message
@@ -115,9 +118,9 @@ def test_small_container(small_container):
     ("original_image", "encoded_image", "message"),
     [
         (
-                'jpg_image',
-                'enc_png_image',
-                'Test message'
+            "jpg_image",
+            "enc_png_image",
+            "Strong people don't put others down. They lift them up. - Darth Vader",
         )
     ],
 )
@@ -133,10 +136,10 @@ def test_message(original_image, encoded_image, message, request):
 @pytest.mark.parametrize(
     "image",
     [
-        'jpg_image',
-        'png_image',
-        'enc_png_image',
-        'enc_jpg_image',
+        "jpg_image",
+        "png_image",
+        "enc_png_image",
+        "enc_jpg_image",
     ],
 )
 def test_cleanup(image, request):

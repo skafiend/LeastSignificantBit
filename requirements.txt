@@ -1,2 +1,5 @@
-project.py: numpy, PIL
-test_project.py:  numpy, PIL, wget
+numpy~=1.26.4
+argparse~=1.4.0
+pillow~=10.2.0
+wget~=3.2
+pytest~=8.1.1
