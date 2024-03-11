@@ -1,4 +1,6 @@
-import os.path, wget, pytest
+import os.path
+import wget
+import pytest
 import numpy as np
 from PIL import Image
 from project import (
@@ -66,8 +68,8 @@ def test_file_extension(path, extensions):
     ("original_image", "encoded_image"),
     [
         (
-            "jpg_image",
-            "enc_png_image",
+                "jpg_image",
+                "enc_png_image",
         )
     ],
 )
@@ -85,8 +87,8 @@ def test_arrays_equal(original_image, encoded_image, request):
     ("original_image", "encoded_image"),
     [
         (
-            "jpg_image",
-            "enc_jpg_image",
+                "jpg_image",
+                "enc_jpg_image",
         )
     ],
 )
@@ -118,9 +120,9 @@ def test_small_container(small_container):
     ("original_image", "encoded_image", "message"),
     [
         (
-            "jpg_image",
-            "enc_png_image",
-            "Strong people don't put others down. They lift them up. - Darth Vader",
+                "jpg_image",
+                "enc_png_image",
+                "Strong people don't put others down. They lift them up. - Darth Vader",
         )
     ],
 )
