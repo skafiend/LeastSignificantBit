@@ -1,6 +1,5 @@
 import sys
 import os
-import time
 
 from PIL import Image
 import numpy as np
@@ -11,12 +10,23 @@ import argparse
 END_OF_MSG = ''
 # saving files in 'jpg.' causes trouble reading the encoded data
 EXPORT_EXT = '.png'
+# we use this mark to clear our LSB bits
 MASK_HIGH_BITS = 0b11111100
+# we use this mask to extract bits from our character in right to left order
 MASK_LOW_BITS = 0b00000011
 # to encode one character (8bits) we need this amount of colors:
 COLORS_PER_BYTE = 4
 # every color (r, g, b) contains this amount of data:
 BITS_PER_COLOR = 2
+EXTENSIONS = ('.png', '.jpeg', '.jpg')
+
+
+def file_extension(path: str, extensions):
+    ext = os.path.splitext(path)
+    if ext[1] in extensions:
+        return path
+    else:
+        sys.exit(f"Unsupported format {path}. Supported file types: {EXTENSIONS}.")
 
 
 def convert_to_array(image: str) -> ndarray:
@@ -47,12 +57,12 @@ def encode(image: ndarray, char: str, start: int, end: int) -> None:
 
 
 def add_to_array(image: ndarray, msg: str) -> ndarray:
-    msg = f"{msg}{END_OF_MSG}{END_OF_MSG}"
+    msg = f"{msg}{END_OF_MSG}"
     # save our original shape
     arr_shape = np.shape(image)
 
     if image.shape[0] * image.shape[1] // COLORS_PER_BYTE < len(msg):
-        sys.exit("You image can't be a container, choose another image")
+        sys.exit("You image isn't big enough to be a container, choose another image")
 
     # and convert multidimensional array to one-dimensional
     image = np.reshape(image, -1)
@@ -72,7 +82,8 @@ def decode(chunk, start, end) -> str:
     # when we've written our values we did it in reversed order from right to left
     # to extract the correct symbol we have to read them in reversed order as well
     for color in reversed(chunk[start:end]):
-        symbol += f"{color & MASK_LOW_BITS:02b}"
+        # add 0 * BITS_PER_COLOR before binary value
+        symbol += f"{color & MASK_LOW_BITS:0{BITS_PER_COLOR}b}"
     return chr(int(f"{symbol}", 2))
 
 
@@ -107,14 +118,16 @@ def main():
 
     args = parser.parse_args()
     image_path = args.image
+    file_extension(image_path, EXTENSIONS)
     message = args.message
+    if message is None: message = ''
     extract_true = args.extract
 
-    if all((image_path, message, not extract_true)):
+    if all((image_path, message.isprintable(), not extract_true)):
         arr_img = convert_to_array(image_path)
         image = Image.fromarray(add_to_array(image=arr_img, msg=message))
         name = os.path.splitext(image_path)
-        new_name = name[0] + "_ENCODED" + "EXPORT_EXT"
+        new_name = name[0] + "_ENCODED" + EXPORT_EXT
         image.save(new_name)
         print(f'Your message was successfully put into {new_name}. Congratulations!!!')
     elif all((image_path, not message, extract_true)):
