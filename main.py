@@ -7,11 +7,15 @@ import numpy as np
 from numpy import ndarray
 import argparse
 
-# END_OF_MSG should be unprintable
+# END_OF_MSG MUST be unprintable
 END_OF_MSG = ''
+# saving files in 'jpg.' causes trouble reading the encoded data
+EXPORT_EXT = '.png'
 MASK_HIGH_BITS = 0b11111100
 MASK_LOW_BITS = 0b00000011
+# to encode one character (8bits) we need this amount of colors:
 COLORS_PER_BYTE = 4
+# every color (r, g, b) contains this amount of data:
 BITS_PER_COLOR = 2
 
 
@@ -110,7 +114,7 @@ def main():
         arr_img = convert_to_array(image_path)
         image = Image.fromarray(add_to_array(image=arr_img, msg=message))
         name = os.path.splitext(image_path)
-        new_name = name[0] + "_ENCODED" + ".png"
+        new_name = name[0] + "_ENCODED" + "EXPORT_EXT"
         image.save(new_name)
         print(f'Your message was successfully put into {new_name}. Congratulations!!!')
     elif all((image_path, not message, extract_true)):
