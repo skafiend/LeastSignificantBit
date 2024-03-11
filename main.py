@@ -13,7 +13,7 @@ MASK_LOW_BITS = 0b00000011
 COLORS_PER_BYTE = 4
 BITS_PER_COLOR = 2
 
-print('AAAAAAAA')
+print('BBBB')
 def convert_to_array(image: str) -> ndarray:
     # Open our image as array
     # [[['r','g','b'],['r','g','b']],[['r','g','b'],['r','g','b']]]
