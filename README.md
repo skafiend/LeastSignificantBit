@@ -1,7 +1,6 @@
 # LSB Steganography
 ### Video Demo:
-https://www.youtube.com/watch?v=-JhfGisKw70
-https://youtu.be/-JhfGisKw70
+[https://youtu.be/-JhfGisKw70](https://img.youtube.com/vi/-JhfGisKw70/maxresdefault.jpg)
 ### Description:
 &nbsp; &nbsp; &nbsp; &nbsp;  This simple python script encodes your data using provided JPG image and converts the latter into PNG file with the encoded information. Those files are indistinguishable for the naked eye, and that gives you an opportunity not only hide the information itself, but also hide the fact that the data was transferred
 
