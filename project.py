@@ -51,7 +51,7 @@ def generate_parameters(mask_high_bits: str):
     mask_low_bits,
     bits_per_color,
     colors_per_byte,
-) = generate_parameters("11111110")
+) = generate_parameters("11111100")
 
 
 def file_extension(path: str, extensions):

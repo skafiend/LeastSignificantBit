@@ -12,6 +12,7 @@ from project import (
     encode,
     generate_parameters,
 )
+import project
 
 pytestmark = pytest.mark.slow
 
@@ -148,6 +149,9 @@ def test_small_container(small_container):
         ([0, 0, 0, 0, 0, 0, 0, 0], "#"),
         ([255, 255, 255, 255, 255, 255, 255, 255], "V"),
         ([125, 125, 125, 125, 125, 125, 125, 125], " "),
+        ([0, 0, 0, 0], "#"),
+        ([255, 255, 255, 255], "V"),
+        ([125, 125, 125, 125], " "),
     ]
 )
 def chunk(request):
@@ -157,8 +161,8 @@ def chunk(request):
 # char == decode(encode(char))
 # test how our encoding works on a one piece of data
 def test_encode(chunk):
-    encode(chunk[0], chunk[1], 0, 8)
-    char = decode(chunk[0], 0, 8)
+    encode(chunk[0], chunk[1], 0, len(chunk[0]))
+    char = decode(chunk[0], 0, len(chunk[0]))
     assert char == chunk[1]
 
 
