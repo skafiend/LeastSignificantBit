@@ -11,23 +11,57 @@ import argparse
 END_OF_MSG = ""
 # saving files in 'jpg.' causes trouble reading the encoded data
 EXPORT_EXT = ".png"
-# we use this mark to clear our LSB bits
-MASK_HIGH_BITS = 0b11111100
-# we use this mask to extract bits from our character in right to left order
-MASK_LOW_BITS = 0b00000011
-# to encode one character (8bits) we need this amount of colors:
-COLORS_PER_BYTE = 4
-# every color (r, g, b) contains this amount of data:
-BITS_PER_COLOR = 2
-EXTENSIONS = (".png", ".jpeg", ".jpg")
+EXTENSIONS = (".jpeg", ".jpg")
+
+
+# generate constants for our program.
+# it takes our mask_high_bits as the first parameter, since max value for a subpixel = 255
+# our min value for mask_high_bits = 11111110 or 254
+# returns number_of_colors_per_byte, number_of_bits_per_color, mask_low_bits
+def generate_parameters(mask_high_bits: str):
+    inverse_dict = {"0": "1", "1": "0"}
+    mask_low_bits = ""
+
+    # our mask_low_bits should be opposite to mask_high_bits
+    # we replace 0 with 1 and vise versa
+    for i in mask_high_bits:
+        mask_low_bits += inverse_dict[i]
+
+    bits_per_color = mask_high_bits.count("0")
+
+    # to calculate how many colors we need to encode one byte (8 bits)
+    # we should divide number_of_bits_to_encode / bits_per_color and round up the result in case we get a float
+    # 8 / 1 = 8 colors, 8 / 3 = 3 colors and so on and so forth
+    # floor division // returns the largest integer <= the result. therefore, we use the trick with negative numbers
+    # since we don't want to import another math libraries
+    # -8 / 3 = -2.66 or -8 // 3 = -3
+    colors_per_byte = -(-8 // bits_per_color)
+
+    # int('string', 2) -> 2 is the base in other words 2 stands for binary system
+    return (
+        int(mask_high_bits, 2),
+        int(mask_low_bits, 2),
+        bits_per_color,
+        colors_per_byte,
+    )
+
+
+(
+    mask_high_bits,
+    mask_low_bits,
+    bits_per_color,
+    colors_per_byte,
+) = generate_parameters("11111110")
 
 
 def file_extension(path: str, extensions):
-    ext = os.path.splitext(path)
-    if ext[1] in extensions:
+    name = os.path.basename(path).rstrip("\"'")
+    if name.endswith(extensions) and os.path.exists(path):
         return path
     else:
-        sys.exit(f"Unsupported format {path}. Supported file types: {EXTENSIONS}.")
+        sys.exit(
+            f"Don't use single quotes for the {path}, Supported image types: {EXTENSIONS}."
+        )
 
 
 def convert_to_array(image: str) -> ndarray:
@@ -35,24 +69,26 @@ def convert_to_array(image: str) -> ndarray:
     # [[['r','g','b'],['r','g','b']],[['r','g','b'],['r','g','b']]]
     # shape = (rows=2,columns=2,colors=3)
     try:
-        image = Image.open(image)
+        # our program doesn't support alpha channel as the JPG
+        # in case our user renames PNG to JPG we use convert('RGB') we delete that channel whatsoever
+        image = Image.open(image).convert("RGB")
         arr_image = np.array(image)
         image.close()
         return arr_image
 
     except FileNotFoundError:
-        sys.exit(f"You file {image} doesn't exist")
+        sys.exit(f"Your file {image} doesn't exist")
 
 
 def encode(image: ndarray, char: str, start: int, end: int) -> None:
     count = 0
     for index, color in enumerate(image[start:end], start=start):
         # clear our LSB bits using mask and bitwise AND
-        image[index] &= MASK_HIGH_BITS
-        # extract our LSB bits from 'char' using MASK_LOW_BITS and bitwise AND
+        image[index] &= mask_high_bits
+        # extract our LSB bits from 'char' using mask_low_bits and bitwise AND
         # that means that we convert all our left bits to 0
         # we will shift our bits to the right every iteration to get a new portion
-        bites_to_write = (ord(char) >> count * BITS_PER_COLOR) & MASK_LOW_BITS
+        bites_to_write = (ord(char) >> count * bits_per_color) & mask_low_bits
         image[index] |= bites_to_write
         count += 1
 
@@ -62,7 +98,7 @@ def add_to_array(image: ndarray, msg: str) -> ndarray:
     # save our original shape
     arr_shape = np.shape(image)
 
-    if image.shape[0] * image.shape[1] // COLORS_PER_BYTE < len(msg):
+    if image.shape[0] * image.shape[1] // colors_per_byte < len(msg):
         sys.exit("You image isn't big enough to be a container, choose another image")
 
     # and convert multidimensional array to one-dimensional
@@ -70,8 +106,8 @@ def add_to_array(image: ndarray, msg: str) -> ndarray:
 
     for i, char in enumerate(msg):
         # slice our chunk from the image
-        start = i * COLORS_PER_BYTE
-        end = COLORS_PER_BYTE * (i + 1)
+        start = i * colors_per_byte
+        end = colors_per_byte * (i + 1)
         encode(image, char, start, end)
 
     image = image.reshape(arr_shape)
@@ -83,8 +119,8 @@ def decode(chunk, start, end) -> str:
     # when we've written our values we did it in reversed order from right to left
     # to extract the correct symbol we have to read them in reversed order as well
     for color in reversed(chunk[start:end]):
-        # add 0 * BITS_PER_COLOR before binary value
-        symbol += f"{color & MASK_LOW_BITS:0{BITS_PER_COLOR}b}"
+        # add 0 * bits_per_color before binary value
+        symbol += f"{color & mask_low_bits:0{bits_per_color}b}"
     return chr(int(f"{symbol}", 2))
 
 
@@ -92,8 +128,8 @@ def read_from_array(image: ndarray) -> str:
     image = np.reshape(image, -1)
     msg = ""
     for index in range(len(image)):
-        start = index * COLORS_PER_BYTE
-        end = COLORS_PER_BYTE * (index + 1)
+        start = index * colors_per_byte
+        end = colors_per_byte * (index + 1)
         symbol = decode(image, start, end)
         # we're deliberately using an unprintable character at the end of the message
         if not symbol.isprintable():
@@ -104,13 +140,13 @@ def read_from_array(image: ndarray) -> str:
 
 def main():
     example_text = (
-        'text into an image: test_image.ext --message="Test text"'
-        "\ntext from an image: test_ENCODED.png --extract"
+        'Usage:\n       test_image.(jpg|jpeg) --message="a message to encode"'
+        "\n       test_ENCODED.png --extract\n\nWARNING: Please, refrain from renaming your PNG files with alpha channel into JPG, ALPHA CHANNEL WILL BE DELETED"
     )
 
     parser = argparse.ArgumentParser(
         prog="Least Significant Bit Image",
-        description="The program encodes/decodes a message into/from an image",
+        description="The script encodes a message into a PNG file/decodes the message from a JPG file",
         epilog=example_text,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -118,23 +154,24 @@ def main():
     parser.add_argument("image", type=str, help="path to an image")
     parser.add_argument("--message", "-m", type=str, help="a message to encode")
     parser.add_argument(
-        "--extract", "-e", action="store_true", help="extract a message from an image"
+        "--extract", "-e", action="store_true", help="extract the message from the image"
     )
 
     args = parser.parse_args()
     image_path = args.image
-    file_extension(image_path, EXTENSIONS)
     message = args.message
     if message is None:
         message = ""
     extract_true = args.extract
 
     if all((image_path, message.isprintable(), not extract_true)):
+        file_extension(image_path, EXTENSIONS)
         arr_img = convert_to_array(image_path)
-        image = Image.fromarray(add_to_array(image=arr_img, msg=message))
+        image = Image.fromarray(add_to_array(image=arr_img, msg=message)).convert("RGB")
         name = os.path.splitext(image_path)
         new_name = name[0] + "_ENCODED" + EXPORT_EXT
         image.save(new_name)
+        image.show(new_name)
         print(f"Your message was successfully put into {new_name}. Congratulations!!!")
     elif all((image_path, not message, extract_true)):
         image = convert_to_array(image_path)

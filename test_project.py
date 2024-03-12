@@ -10,19 +10,22 @@ from project import (
     file_extension,
     decode,
     encode,
+    generate_parameters,
 )
 
-# before the test start, create two files test.png and test.jpg
+pytestmark = pytest.mark.slow
+
 cwd = os.getcwd()
-wget.download(
-    "https://file-examples.com/storage/fe0275ec7165ef4cb9b4af6/2017/10/file_example_JPG_1MB.jpg",
-    out=f"{cwd}\\test.jpg",
-)
-wget.download(
-    "https://file-examples.com/storage/fe0275ec7165ef4cb9b4af6/2017/10/file_example_PNG_1MB.png",
-    out=f"{cwd}\\test.png",
-)
 PATH = f"{cwd}\\test"
+
+
+@pytest.mark.slow
+# before the test start, create test.jpg
+def test_download_image():
+    wget.download(
+        "https://cs50.harvard.edu/python/2022/psets/8/shirtificate/shirtificate.png",
+        out=f"{cwd}\\test.jpg",
+    )
 
 
 # file doesn't exists
@@ -33,17 +36,12 @@ def test_file_doesnt_exist():
 
 @pytest.fixture
 def extensions():
-    return ".png", ".jpeg", ".jpg"
+    return ".jpeg", ".jpg"
 
 
 @pytest.fixture
 def jpg_image():
     return f"{PATH}" + ".jpg"
-
-
-@pytest.fixture
-def png_image():
-    return f"{PATH}" + ".png"
 
 
 @pytest.fixture
@@ -56,7 +54,16 @@ def enc_jpg_image():
     return f"{PATH}" + "_encoded" + ".jpg"
 
 
-@pytest.mark.parametrize("path", ["C:\\test.txt", "C:\\test", "C:\\"])
+@pytest.mark.parametrize(
+    "path",
+    [
+        "C:\\test.txt",
+        "C:\\test",
+        "C:\\",
+        "C:\\Folder\\test.png",
+        "'C:\\Folder\\test.png'",
+    ],
+)
 def test_file_extension(path, extensions):
     with pytest.raises(SystemExit):
         file_extension(path, extensions)
@@ -64,15 +71,17 @@ def test_file_extension(path, extensions):
 
 # encoded array == extracted array
 # if we convert our image to png, the order of elements must be the same
+@pytest.mark.slow
 @pytest.mark.parametrize(
     ("original_image", "encoded_image"),
     [
         (
-                "jpg_image",
-                "enc_png_image",
+            "jpg_image",
+            "enc_png_image",
         )
     ],
 )
+# https://docs.pytest.org/en/7.1.x/reference/reference.html#request
 def test_arrays_equal(original_image, encoded_image, request):
     arr_image = convert_to_array(request.getfixturevalue(original_image))
     arr_enc_image = add_to_array(arr_image, "Test message")
@@ -84,18 +93,33 @@ def test_arrays_equal(original_image, encoded_image, request):
 
 
 @pytest.mark.parametrize(
+    "in_mask_high_bits, constants",
+    [
+        ("11111100", (252, 3, 2, 4)),
+        ("11111110", (254, 1, 1, 8)),
+        ("11111000", (248, 7, 3, 3)),
+    ],
+)
+def test_parameters(in_mask_high_bits: str, constants: tuple):
+    assert generate_parameters(in_mask_high_bits) == constants
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize(
     ("original_image", "encoded_image"),
     [
         (
-                "jpg_image",
-                "enc_jpg_image",
+            "jpg_image",
+            "enc_jpg_image",
         )
     ],
 )
 # if we convert our image to jpg, the order of elements will be changed and the data will be lost
+# https://docs.pytest.org/en/7.1.x/reference/reference.html#request
 def test_arrays_not_equal(original_image, encoded_image, request):
     arr_image = convert_to_array(request.getfixturevalue(original_image))
     arr_enc_image = add_to_array(arr_image, "Test message")
+    # we have to delete alpha channel, just in case
     enc_image = Image.fromarray(arr_enc_image)
     enc_image.save(request.getfixturevalue(encoded_image))
     arr_ext_image = convert_to_array(request.getfixturevalue(encoded_image))
@@ -115,17 +139,40 @@ def test_small_container(small_container):
         add_to_array(small_container, "Very very very very long message")
 
 
+# in the worst case we need 8 colors per byte to encode one char
+# https://docs.pytest.org/en/stable/how-to/fixtures.html#fixture-parametrize
+@pytest.fixture(
+    params=[
+        ([0, 0, 0, 0, 0, 0, 0, 0], "#"),
+        ([255, 255, 255, 255, 255, 255, 255, 255], "V"),
+        ([125, 125, 125, 125, 125, 125, 125, 125], " "),
+    ]
+)
+def chunk(request):
+    return request.param
+
+
+# char == decode(encode(char))
+# test how our encoding works on a one piece of data
+def test_encode(chunk):
+    encode(chunk[0], chunk[1], 0, 8)
+    char = decode(chunk[0], 0, 8)
+    assert char == chunk[1]
+
+
 # test if we can encode and extract our message
+@pytest.mark.slow
 @pytest.mark.parametrize(
     ("original_image", "encoded_image", "message"),
     [
         (
-                "jpg_image",
-                "enc_png_image",
-                "Strong people don't put others down. They lift them up. - Darth Vader",
+            "jpg_image",
+            "enc_png_image",
+            "Strong people don't put others down. They lift them up. - Darth Vader",
         )
     ],
 )
+# https://docs.pytest.org/en/7.1.x/reference/reference.html#request
 def test_message(original_image, encoded_image, message, request):
     arr_image = convert_to_array(request.getfixturevalue(original_image))
     arr_enc_image = add_to_array(arr_image, message)
@@ -135,11 +182,11 @@ def test_message(original_image, encoded_image, message, request):
     assert read_from_array(arr_ext_image) == message
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize(
     "image",
     [
         "jpg_image",
-        "png_image",
         "enc_png_image",
         "enc_jpg_image",
     ],
