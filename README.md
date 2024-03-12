@@ -1,3 +1,7 @@
+html {
+	tab-size: 4;
+}
+
 # LSB Steganography 
 ### Video Demo:  <URL HERE>
 ### Description:
