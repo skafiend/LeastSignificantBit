@@ -21,7 +21,9 @@ PATH = f"{cwd}\\test"
 
 @pytest.mark.slow
 # before the test start, create test.jpg
+
 def test_download_image():
+    # even though the file is png in RGBA format, we'll delete the alpha channel
     wget.download(
         "https://cs50.harvard.edu/python/2022/psets/8/shirtificate/shirtificate.png",
         out=f"{cwd}\\test.jpg",

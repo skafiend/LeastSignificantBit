@@ -140,13 +140,20 @@ def read_from_array(image: ndarray) -> str:
 
 def main():
     example_text = (
-        'Usage:\n       test_image.(jpg|jpeg) --message="a message to encode"'
-        "\n       test_ENCODED.png --extract\n\nWARNING: Please, refrain from renaming your PNG files with alpha channel into JPG, ALPHA CHANNEL WILL BE DELETED"
+        'Usage:'
+        '\n\t\ttest_image.(jpg|jpeg) --message="a message to encode"'
+        "\n\t\ttest_ENCODED.png --extract\n"
+        "\n"
+        "============================== WARNING =================================:\n"
+        "Please, refrain from renaming your PNG files with alpha channel into JPG,\n"
+        "\t\t\t\t\tALPHA CHANNEL WILL BE DELETED\n"
+        "========================================================================"
+
     )
 
     parser = argparse.ArgumentParser(
         prog="Least Significant Bit Image",
-        description="The script encodes a message into a PNG file/decodes the message from a JPG file",
+        description="The script encodes a message using a JPG file/decodes the message from a PNG file",
         epilog=example_text,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
