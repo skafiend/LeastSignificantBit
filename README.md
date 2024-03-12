@@ -60,7 +60,7 @@
 	  # from right to left,so now we're reading them in the reversed order
 	  for subpixel in reversed(chunk[start:end]):
 	    symbol += f"{subpixel & mask_low_bits:0{bits_per_color}b}"
-	    return chr(int(f"{symbol}", 2))
+	  return chr(int(f"{symbol}", 2))
 	    ```
 - The script works as long as it doesn't encounter an unprintable symbol
 - Show the message
