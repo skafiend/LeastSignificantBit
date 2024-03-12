@@ -27,8 +27,7 @@
 	  ```python
 	  # count = 1, our char to write is 0b01000001 = 'A', bits_per_color = 2 
 	  # and mask_low_bits = 0b00000011
-	  bits_to_write = (ord(char) >> count * bits_per_color) & mask_low_bits
-	  
+	  bits_to_write = (ord(char) >> count * bits_per_color) & mask_low_bits  
 	  # bits_to_write = 0b01000001 >> 1 * 2 & 0b00000011
 	  # I added meaningless bits to the left to keep things simple. 0b00010000 == 0b010000
 	  # bits_to_write = 0b00010000 & 0b00000011
