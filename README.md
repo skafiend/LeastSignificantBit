@@ -39,8 +39,8 @@ print(f"Your message was successfully put into {new_name}. Congratulations!!!")
 	- The script as long as it doesn't encounter an unprintable symbol
 - Show the message
 ```python 
-    image = convert_to_array(image_path)  
-    print("Your encoded message is: ", read_from_array(image))
+image = convert_to_array(image_path)  
+print("Your encoded message is: ", read_from_array(image))
 ```
 
 
