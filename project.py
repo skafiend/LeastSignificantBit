@@ -17,7 +17,7 @@ EXTENSIONS = (".jpeg", ".jpg")
 # generate constants for our program.
 # it takes our mask_high_bits as the first parameter, since max value for a subpixel = 255
 # our min value for mask_high_bits = 11111110 or 254
-# returns number_of_colors_per_byte, number_of_bits_per_color, mask_low_bits
+# returns number_of_colors_per_byte, number_of_bits_per_subpixel, mask_low_bits
 def generate_parameters(high_bits: str):
     inverse_dict = {"0": "1", "1": "0"}
     low_bits = ""
@@ -30,7 +30,7 @@ def generate_parameters(high_bits: str):
     n_bits_to_write = high_bits.count("0")
 
     # to calculate how many colors we need to encode one byte (8 bits)
-    # we should divide number_of_bits_to_encode / bits_per_color and round up the result in case we get a float
+    # we should divide number_of_bits_to_encode / bits_per_subpixel and round up the result in case we get a float
     # 8 / 1 = 8 colors, 8 / 3 = 3 colors and so on and so forth
     # floor division // returns the largest integer <= the result. therefore, we use the trick with negative numbers
     # since we don't want to import another math libraries
@@ -49,7 +49,7 @@ def generate_parameters(high_bits: str):
 (
     mask_high_bits,
     mask_low_bits,
-    bits_per_color,
+    bits_per_subpixel,
     colors_per_byte,
 ) = generate_parameters("11110000")
 
@@ -88,8 +88,8 @@ def encode(image: ndarray, char: str, start: int, end: int) -> None:
         # extract our LSB bits from 'char' using mask_low_bits and bitwise AND
         # that means that we convert all our left bits to 0
         # we will shift our bits to the right every iteration to get a new portion
-        bites_to_write = (ord(char) >> count * bits_per_color) & mask_low_bits
-        image[index] |= bites_to_write
+        bits_to_write = (ord(char) >> count * bits_per_subpixel) & mask_low_bits
+        image[index] |= bits_to_write
         count += 1
 
 
@@ -118,9 +118,9 @@ def decode(chunk, start, end) -> str:
     symbol = ""
     # when we've written our values we did it in reversed order from right to left
     # to extract the correct symbol we have to read them in reversed order as well
-    for color in reversed(chunk[start:end]):
-        # add 0 * bits_per_color before binary value
-        symbol += f"{color & mask_low_bits:0{bits_per_color}b}"
+    for subpixel in reversed(chunk[start:end]):
+        # add 0 * bits_per_subpixel before binary value
+        symbol += f"{subpixel & mask_low_bits:0{bits_per_subpixel}b}"
     return chr(int(f"{symbol}", 2))
 
 
