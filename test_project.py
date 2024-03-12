@@ -116,6 +116,7 @@ def test_decode_type(chunk):
     end = colors_per_byte
     assert str(type(decode(chunk[0], 0, end))) == "<class 'str'>"
 
+
 @pytest.mark.parametrize(
     "in_mask_high_bits, constants",
     [
