@@ -50,6 +50,7 @@
 - Transform the image into a one dimensional array
 - Go through the array
 	- Read the chunks of data in the right-to-left order extracting one symbol per chunk.
+
 	  ```python
 	  symbol = ""
 	  # Every iteration we get a portion of recorded bits
