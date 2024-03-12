@@ -18,16 +18,16 @@ EXTENSIONS = (".jpeg", ".jpg")
 # it takes our mask_high_bits as the first parameter, since max value for a subpixel = 255
 # our min value for mask_high_bits = 11111110 or 254
 # returns number_of_colors_per_byte, number_of_bits_per_color, mask_low_bits
-def generate_parameters(mask_high_bits: str):
+def generate_parameters(high_bits: str):
     inverse_dict = {"0": "1", "1": "0"}
-    mask_low_bits = ""
+    low_bits = ""
 
     # our mask_low_bits should be opposite to mask_high_bits
     # we replace 0 with 1 and vise versa
-    for i in mask_high_bits:
-        mask_low_bits += inverse_dict[i]
+    for i in high_bits:
+        low_bits += inverse_dict[i]
 
-    bits_per_color = mask_high_bits.count("0")
+    n_bits_to_write = high_bits.count("0")
 
     # to calculate how many colors we need to encode one byte (8 bits)
     # we should divide number_of_bits_to_encode / bits_per_color and round up the result in case we get a float
@@ -35,14 +35,14 @@ def generate_parameters(mask_high_bits: str):
     # floor division // returns the largest integer <= the result. therefore, we use the trick with negative numbers
     # since we don't want to import another math libraries
     # -8 / 3 = -2.66 or -8 // 3 = -3
-    colors_per_byte = -(-8 // bits_per_color)
+    n_subpixels = -(-8 // n_bits_to_write)
 
     # int('string', 2) -> 2 is the base in other words 2 stands for binary system
     return (
-        int(mask_high_bits, 2),
-        int(mask_low_bits, 2),
-        bits_per_color,
-        colors_per_byte,
+        int(high_bits, 2),
+        int(low_bits, 2),
+        n_bits_to_write,
+        n_subpixels,
     )
 
 
@@ -51,7 +51,7 @@ def generate_parameters(mask_high_bits: str):
     mask_low_bits,
     bits_per_color,
     colors_per_byte,
-) = generate_parameters("11111100")
+) = generate_parameters("11110000")
 
 
 def file_extension(path: str, extensions):
@@ -139,6 +139,7 @@ def read_from_array(image: ndarray) -> str:
 
 
 def main():
+
     example_text = (
         'Usage:'
         '\n\t\ttest_image.(jpg|jpeg) --message="a message to encode"'
