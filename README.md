@@ -16,7 +16,8 @@
 	- Clear all the LSB bits from the current subpixel using ***the mask_high_bits***  <a href="https://realpython.com/python-bitwise-operators/#bitwise-and">the bitwise AND operator</a>:
 	  ```python
 	  # mask_high_bits = 0b11111100, image[index] is our subpixel = 0b00110111
-	  # the result is 0b00110100, and now we're free to use the last two bits and write whatever we want
+	  # the result is 0b00110100, and now we're free to use the last two bits
+	  # and write whatever we want
 	  image[index] &= mask_high_bits
 	  
 	  # image[index] = 0b00110111 & 0b11111100
@@ -24,8 +25,8 @@
 	  ````
 	-  Extract ***the bits_per_color*** according to  ***the mask_low_bits*** using <a href="https://realpython.com/python-bitwise-operators/#bitwise-and">the bitwise AND operator</a>
 	  ```python
-	  # count = 1, our char to write is 0b01000001 = 'A', bits_per_color = 2
-# and mask_low_bits = 0b00000011
+	  # count = 1, our char to write is 0b01000001 = 'A', bits_per_color = 2 
+	  # and mask_low_bits = 0b00000011
 	  bits_to_write = (ord(char) >> count * bits_per_color) & mask_low_bits
 	  
 	  # bits_to_write = 0b01000001 >> 1 * 2 & 0b00000011
@@ -53,9 +54,10 @@
 	  symbol = ""
 	  # Every iteration we get a portion of recorded bits
 	  # Iterations will go on until we get all 8 bits = 1 byte = 1 char
-	  # Our encoded character is 'A' => the first iteration yields 10 => the next 00 and so on and so forth
-	  # It's important to point out that when we recorded 'A' we wrote its bits from right to left,
-	  # so now we're reading them in the reversed order
+	  # Our encoded character is 'A' => the first iteration yields 10 => the next 00 
+	  # and so on and so forth
+	  # It's important to point out that when we recorded 'A' we wrote its bits 
+	  # from right to left,so now we're reading them in the reversed order
 	  for subpixel in reversed(chunk[start:end]):
 	    symbol += f"{subpixel & mask_low_bits:0{bits_per_color}b}"
 	    return chr(int(f"{symbol}", 2))
