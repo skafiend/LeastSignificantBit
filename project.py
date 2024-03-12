@@ -179,7 +179,6 @@ def main():
         name = os.path.splitext(image_path)
         new_name = name[0] + "_ENCODED" + EXPORT_EXT
         image.save(new_name)
-        image.show(new_name)
         print(f"Your message was successfully put into {new_name}. Congratulations!!!")
     elif all((image_path, not message, extract_true)):
         image = convert_to_array(image_path)
