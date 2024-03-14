@@ -92,7 +92,7 @@ param_list = [
 
 @pytest.mark.parametrize("my_array, character", param_list)
 # char == decode(encode(char))
-# test how our encoding works on a one piece of data
+# test how our encoding works on a fone piece of data
 # this test is using global variables from the line 48 in project.py
 def test_encode_and_decode(my_array, character):
     end = colors_per_byte
