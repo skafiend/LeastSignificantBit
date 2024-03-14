@@ -10,7 +10,8 @@ from project import (
     file_extension,
     decode,
     encode,
-    generate_parameters, colors_per_byte,
+    generate_parameters,
+    colors_per_byte,
 )
 
 pytestmark = pytest.mark.slow
@@ -79,42 +80,37 @@ def test_convert_to_array_type(jpg_image):
     assert str(type(array)) == "<class 'numpy.ndarray'>"
 
 
-# in the worst case we need 8 colors per byte to encode one char
-# https://docs.pytest.org/en/stable/how-to/fixtures.html#fixture-parametrize
-# even though we use the fixture with 8 elements, when we test, we write the data to
-# colors_per_byte elements. I did it just to keep things simple
-@pytest.fixture(
-    params=[
-        ([0, 0, 0, 0, 0, 0, 0, 0], "#"),
-        ([255, 255, 255, 255, 255, 255, 255, 255], "V"),
-        ([125, 125, 125, 125, 125, 125, 125, 125], " "),
-        ([0, 0, 0, 0, 0, 0, 0, 0], "G"),
-        ([255, 255, 255, 255, 255, 255, 255, 255], "N"),
-        ([125, 125, 125, 125, 125, 125, 125, 125], "/"),
-    ]
-)
-def chunk(request):
-    return request.param
+param_list = [
+    [[0, 0, 0, 0, 0, 0, 0, 0], "#"],
+    [[255, 255, 255, 255, 255, 255, 255, 255], "V"],
+    [[125, 125, 125, 125, 125, 125, 125, 125], " "],
+    [[0, 0, 0, 0, 0, 0, 0, 0], "G"],
+    [[255, 255, 255, 255, 255, 255, 255, 255], "N"],
+    [[125, 125, 125, 125, 125, 125, 125, 125], "/"],
+]
 
 
+@pytest.mark.parametrize("my_array, character", param_list)
 # char == decode(encode(char))
 # test how our encoding works on a one piece of data
 # this test is using global variables from the line 48 in project.py
-def test_encode_and_decode(chunk):
+def test_encode_and_decode(my_array, character):
     end = colors_per_byte
-    encode(chunk[0], chunk[1], 0, end)
-    char = decode(chunk[0], 0, end)
-    assert char == chunk[1]
+    encode(my_array, character, 0, end)
+    char = decode(my_array, 0, end)
+    assert char == character
 
 
-def test_encode_type(chunk):
+@pytest.mark.parametrize("my_array, character", param_list)
+def test_encode_type(my_array, character):
     end = colors_per_byte
-    assert str(type(encode(chunk[0], chunk[1], 0, end))) == "<class 'NoneType'>"
+    assert str(type(encode(my_array, character, 0, end))) == "<class 'NoneType'>"
 
 
-def test_decode_type(chunk):
+@pytest.mark.parametrize("my_array", param_list)
+def test_decode_type(my_array):
     end = colors_per_byte
-    assert str(type(decode(chunk[0], 0, end))) == "<class 'str'>"
+    assert str(type(decode(my_array[0], 0, end))) == "<class 'str'>"
 
 
 @pytest.mark.parametrize(

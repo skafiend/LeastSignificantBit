@@ -154,34 +154,32 @@ def main():
 
     parser = argparse.ArgumentParser(
         prog="Least Significant Bit Image",
-        description="The script encodes a message using a JPG file/decodes the message from a PNG file",
+        description="%(prog)s encodes a message using a JPG file/decodes the message from a PNG file",
         epilog=example_text,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
     parser.add_argument("image", type=str, help="path to an image")
-    parser.add_argument("--message", "-m", type=str, help="a message to encode")
-    parser.add_argument(
+
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--message", "-m", type=str, default="", help="a message to encode")
+    group.add_argument(
         "--extract", "-e", action="store_true", help="extract the message from the image"
     )
 
     args = parser.parse_args()
-    image_path = args.image
-    message = args.message
-    if message is None:
-        message = ""
     extract_true = args.extract
 
-    if all((image_path, message.isprintable(), not extract_true)):
-        file_extension(image_path, EXTENSIONS)
-        arr_img = convert_to_array(image_path)
-        image = Image.fromarray(add_to_array(image=arr_img, msg=message)).convert("RGB")
-        name = os.path.splitext(image_path)
+    if all((args.image, args.message.isprintable(), not extract_true)):
+        file_extension(args.image, EXTENSIONS)
+        arr_img = convert_to_array(args.image)
+        image = Image.fromarray(add_to_array(image=arr_img, msg=args.image)).convert("RGB")
+        name = os.path.splitext(args.image)
         new_name = name[0] + "_ENCODED" + EXPORT_EXT
         image.save(new_name)
         print(f"Your message was successfully put into {new_name}. Congratulations!!!")
-    elif all((image_path, not message, extract_true)):
-        image = convert_to_array(image_path)
+    elif all((args.image, not args.image, extract_true)):
+        image = convert_to_array(args.image)
         print("Your encoded message is: ", read_from_array(image))
     else:
         parser.print_usage()
